@@ -1,0 +1,54 @@
+---
+title: "F1 Plots"
+author: "Holden Ellis"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(viridis)
+```
+
+```{r}
+data <- read.csv("C:/Users/fires/Python Projects/134 F1 Machine Learning/datacollection/angle_counts.csv")
+```
+
+```{r cars}
+make_barplot <- function(data, track_name) {
+  cols <- c("DistNoCar" = "#e38778", "Front" = "#1a9988", "Inside" = "#f0e4af", 
+            "Rear" = "#ff8a46", "Side" = "#8abfdb")
+  
+  data %>%
+  filter(Track==track_name) %>%
+  mutate(total = sum(c_across(DistNoCar:Side))) %>%
+  mutate(across(DistNoCar:Side, ~ .x / total)) %>%
+  select(-c(X,total)) %>%
+  pivot_longer(!Track) %>%
+  ggplot(aes(x=name,y=value,fill=name)) +
+  geom_bar(stat="identity") +
+  theme_bw() +
+  scale_fill_manual(values=cols) +
+  ylab("") +
+  xlab("") +
+  theme(legend.position = "none",
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) +
+  scale_y_continuous(limits=c(0,0.55))
+}
+```
+
+```{r}
+track_names <- unique(data$Track)
+for (track in track_names) {
+  plot <- make_barplot(data, track)
+  ggsave(paste(track,".png"), width=4, height=4)
+}
+```
+
